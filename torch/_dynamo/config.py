@@ -5,6 +5,8 @@ from os.path import abspath, dirname
 
 import torch
 from . import external_utils
+import inspect
+import re
 
 
 # to configure logging for dynamo, aot, and inductor
@@ -257,6 +259,20 @@ _save_config_ignore = {
     # workaround: "cannot pickle module"
     "skipfiles_inline_module_allowlist",
 }
+
+capture_autograd_function = True
+
+_autograd_backward_strict_mode_banned_ops = [
+    "stride",
+    "requires_grad",
+    "storage_offset",
+    "layout",
+    "data",
+]
+
+_autograd_backward_strict_mode_banned_ops.extend(
+    [name for name, _ in inspect.getmembers(torch.Tensor) if re.match(r'^is_.*', name)]
+)
 
 
 from .config_utils import install_config_module
